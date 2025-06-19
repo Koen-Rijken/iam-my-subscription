@@ -141,7 +141,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         </div>
 
         {/* Features */}
-        <div className="space-y-4 mb-8 flex-grow">
+        <div className="space-y-4 mb-8 flex-grow min-h-[200px] flex flex-col justify-start">
           {features.map((feature, index) => (
             <div key={index} className="flex items-start space-x-3">
               <Check className="w-5 h-5 text-[#2DD4BF] mt-0.5 flex-shrink-0" />

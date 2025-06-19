@@ -67,7 +67,7 @@ export const Subscription: React.FC = () => {
     updateSubscription({
       billingCycle: isAnnualBilling ? 'annual' : 'monthly',
       updatedAt: new Date(),
-      nextBillingDate: prev.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
+      nextBillingDate: mySubscription.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
     });
   }, [isAnnualBilling]);
 

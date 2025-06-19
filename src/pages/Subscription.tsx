@@ -8,6 +8,7 @@ import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
 import { MySubscription, createDefaultSubscription } from '../types/subscription';
 import { PaymentModal } from '../components/PaymentModal';
+import { SuccessModal } from '../components/SuccessModal';
 
 export const Subscription: React.FC = () => {
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
@@ -23,6 +24,17 @@ export const Subscription: React.FC = () => {
     amount: 0,
     planName: '',
     tokens: 0
+  });
+  const [successModal, setSuccessModal] = React.useState<{
+    isOpen: boolean;
+    planName: string;
+    tokens: number;
+    amount: number;
+  }>({
+    isOpen: false,
+    planName: '',
+    tokens: 0,
+    amount: 0
   });
 
   // Update subscription when tier is selected
@@ -107,14 +119,18 @@ export const Subscription: React.FC = () => {
       ...prev,
       isActive: true,
       updatedAt: new Date(),
-      // In a real app, you'd update this based on the actual payment
     }));
     
     // Close modal
     setPaymentModal(prev => ({ ...prev, isOpen: false }));
     
-    // Show success message (you could add a toast notification here)
-    alert('Payment successful! Your subscription has been updated.');
+    // Show success modal
+    setSuccessModal({
+      isOpen: true,
+      planName: paymentModal.planName,
+      tokens: paymentModal.tokens,
+      amount: paymentModal.amount
+    });
   };
 
   // Handle payment error
@@ -308,6 +324,15 @@ export const Subscription: React.FC = () => {
         tokens={paymentModal.tokens}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
+      />
+      
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal(prev => ({ ...prev, isOpen: false }))}
+        planName={successModal.planName}
+        tokens={successModal.tokens}
+        amount={successModal.amount}
       />
     </div>
   );

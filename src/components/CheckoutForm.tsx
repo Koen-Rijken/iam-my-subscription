@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import {
   useStripe,
   useElements,
-  CardElement,
   CardNumberElement,
   CardExpiryElement,
   CardCvcElement,
 } from '@stripe/react-stripe-js';
 import { Loader2, CreditCard, Lock } from 'lucide-react';
+import { createPaymentIntent } from '../api/stripe-server';
 
 interface CheckoutFormProps {
   amount: number;
@@ -67,28 +67,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         return;
       }
 
-      // Create payment intent on your backend
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: amount * 100, // Convert to cents
-          currency,
-          payment_method_id: paymentMethod.id,
-          plan_name: planName,
-          tokens,
-        }),
+      // Create payment intent via our API
+      const { client_secret } = await createPaymentIntent({
+        amount: amount * 100, // Convert to cents
+        currency,
+        payment_method_id: paymentMethod.id,
+        plan_name: planName,
+        tokens,
       });
-
-      const { client_secret, error: backendError } = await response.json();
-
-      if (backendError) {
-        setCardError(backendError);
-        setIsProcessing(false);
-        return;
-      }
 
       // Confirm payment
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(client_secret);

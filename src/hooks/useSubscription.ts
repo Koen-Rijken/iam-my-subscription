@@ -80,7 +80,9 @@ export const useSubscription = () => {
 
       const { error } = await supabase
         .from('user_subscriptions')
-        .upsert(subscriptionData);
+        .upsert(subscriptionData, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error('Error saving subscription:', error);

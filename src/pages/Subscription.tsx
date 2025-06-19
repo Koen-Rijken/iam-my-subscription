@@ -7,11 +7,23 @@ import { TokenCounter } from '../components/TokenCounter';
 import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
 import { MySubscription, createDefaultSubscription } from '../types/subscription';
+import { PaymentModal } from '../components/PaymentModal';
 
 export const Subscription: React.FC = () => {
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
   const [mySubscription, setMySubscription] = React.useState<MySubscription>(createDefaultSubscription());
+  const [paymentModal, setPaymentModal] = React.useState<{
+    isOpen: boolean;
+    amount: number;
+    planName: string;
+    tokens: number;
+  }>({
+    isOpen: false,
+    amount: 0,
+    planName: '',
+    tokens: 0
+  });
 
   // Update subscription when tier is selected
   React.useEffect(() => {
@@ -69,6 +81,47 @@ export const Subscription: React.FC = () => {
       nextBillingDate: prev.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
     }));
   }, [isAnnualBilling]);
+
+  // Handle purchase initiation
+  const handlePurchase = (cardIndex: number, tierIndex: number) => {
+    const plans = getPricingPlans();
+    const selectedPlan = plans[cardIndex];
+    
+    if (selectedPlan.tokenTiers) {
+      const selectedTokenTier = selectedPlan.tokenTiers[tierIndex];
+      setPaymentModal({
+        isOpen: true,
+        amount: selectedTokenTier.price,
+        planName: selectedPlan.title,
+        tokens: selectedTokenTier.tokens
+      });
+    }
+  };
+
+  // Handle successful payment
+  const handlePaymentSuccess = (paymentIntent: any) => {
+    console.log('Payment successful:', paymentIntent);
+    
+    // Update subscription with successful payment
+    setMySubscription(prev => ({
+      ...prev,
+      isActive: true,
+      updatedAt: new Date(),
+      // In a real app, you'd update this based on the actual payment
+    }));
+    
+    // Close modal
+    setPaymentModal(prev => ({ ...prev, isOpen: false }));
+    
+    // Show success message (you could add a toast notification here)
+    alert('Payment successful! Your subscription has been updated.');
+  };
+
+  // Handle payment error
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
+    alert(`Payment failed: ${error}`);
+  };
 
   // Function to apply discount if annual billing is selected
   const applyDiscount = (price: number) => {
@@ -182,6 +235,7 @@ export const Subscription: React.FC = () => {
               buttonText={plan.buttonText}
               selectedTier={selectedTier}
               onTierSelect={setSelectedTier}
+              onPurchase={handlePurchase}
             />
           ))}
         </div>
@@ -243,6 +297,18 @@ export const Subscription: React.FC = () => {
       
       {/* Debug Window */}
       <DebugWindow subscription={mySubscription} />
+      
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={paymentModal.isOpen}
+        onClose={() => setPaymentModal(prev => ({ ...prev, isOpen: false }))}
+        amount={paymentModal.amount}
+        currency="eur"
+        planName={paymentModal.planName}
+        tokens={paymentModal.tokens}
+        onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
+      />
     </div>
   );
 };

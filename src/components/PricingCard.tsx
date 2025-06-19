@@ -20,6 +20,7 @@ interface PricingCardProps {
   buttonText?: string;
   selectedTier: {cardIndex: number, tierIndex: number} | null;
   onTierSelect: (selection: {cardIndex: number, tierIndex: number} | null) => void;
+  onPurchase?: (cardIndex: number, tierIndex: number) => void;
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({
@@ -35,7 +36,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   isFree = false,
   buttonText = 'Get Started',
   selectedTier,
-  onTierSelect
+  onTierSelect,
+  onPurchase
 }) => {
   const [showWarning, setShowWarning] = useState(false);
 
@@ -59,7 +61,11 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       setTimeout(() => setShowWarning(false), 3000); // Hide warning after 3 seconds
       return;
     }
-    // Handle other button actions here if needed
+    
+    // Handle purchase for paid plans
+    if (hasSelectedTier && selectedTier && onPurchase && !isFree) {
+      onPurchase(selectedTier.cardIndex, selectedTier.tierIndex);
+    }
   };
 
   const hasSelectedTier = selectedTier?.cardIndex === cardIndex;

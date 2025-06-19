@@ -2,16 +2,21 @@ import React from 'react';
 import { Gift, TrendingUp, Building2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { UserMenu } from '../components/UserMenu';
+import { AuthModal } from '../components/AuthModal';
 import { PricingCard } from '../components/PricingCard';
 import { TokenCounter } from '../components/TokenCounter';
 import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
-import { MySubscription, createDefaultSubscription } from '../types/subscription';
+import { useAuth } from '../context/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 
 export const Subscription: React.FC = () => {
+  const { user, loading } = useAuth();
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
-  const [mySubscription, setMySubscription] = React.useState<MySubscription>(createDefaultSubscription());
+  const [showAuthModal, setShowAuthModal] = React.useState(false);
+  const { subscription: mySubscription, updateSubscription } = useSubscription();
 
   // Update subscription when tier is selected
   React.useEffect(() => {
@@ -19,65 +24,60 @@ export const Subscription: React.FC = () => {
       const plans = getPricingPlans();
       const selectedPlan = plans[selectedTier.cardIndex];
       
-      setMySubscription(prev => {
-        const updated: MySubscription = {
-          ...prev,
-          updatedAt: new Date(),
-        };
+      const updates: any = {
+        updatedAt: new Date(),
+      };
 
-        // Update plan type and name
-        if (selectedTier.cardIndex === 0) {
-          updated.planType = 'freemium';
-          updated.planName = 'Freemium SaaS';
-          updated.tokenTier = null;
-          updated.nextBillingDate = null;
-        } else if (selectedTier.cardIndex === 1) {
-          updated.planType = 'developer';
-          updated.planName = 'Developer SaaS';
-          updated.tokenTier = selectedPlan.tokenTiers![selectedTier.tierIndex];
-          updated.nextBillingDate = new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000);
-        } else if (selectedTier.cardIndex === 2) {
-          updated.planType = 'enterprise';
-          updated.planName = 'Enterprise SaaS';
-          updated.tokenTier = selectedPlan.tokenTiers![selectedTier.tierIndex];
-          updated.nextBillingDate = new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000);
-        }
+      // Update plan type and name
+      if (selectedTier.cardIndex === 0) {
+        updates.planType = 'freemium';
+        updates.planName = 'Freemium SaaS';
+        updates.tokenTier = null;
+        updates.nextBillingDate = null;
+      } else if (selectedTier.cardIndex === 1) {
+        updates.planType = 'developer';
+        updates.planName = 'Developer SaaS';
+        updates.tokenTier = selectedPlan.tokenTiers![selectedTier.tierIndex];
+        updates.nextBillingDate = new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000);
+      } else if (selectedTier.cardIndex === 2) {
+        updates.planType = 'enterprise';
+        updates.planName = 'Enterprise SaaS';
+        updates.tokenTier = selectedPlan.tokenTiers![selectedTier.tierIndex];
+        updates.nextBillingDate = new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000);
+      }
 
-        // Update billing cycle
-        updated.billingCycle = isAnnualBilling ? 'annual' : 'monthly';
+      // Update billing cycle
+      updates.billingCycle = isAnnualBilling ? 'annual' : 'monthly';
 
-        // Update features
-        updated.features = selectedPlan.features;
+      // Update features
+      updates.features = selectedPlan.features;
 
-        // Update tokens if a tier is selected
-        if (updated.tokenTier) {
-          updated.totalTokensPurchased = updated.tokenTier.tokens;
-          updated.remainingTokens = updated.tokenTier.tokens;
-        }
+      // Update tokens if a tier is selected
+      if (updates.tokenTier) {
+        updates.totalTokensPurchased = updates.tokenTier.tokens;
+        updates.remainingTokens = updates.tokenTier.tokens;
+      }
 
-        return updated;
-      });
+      updateSubscription(updates);
     }
   }, [selectedTier, isAnnualBilling]);
 
   // Update subscription when billing cycle changes
   React.useEffect(() => {
-    setMySubscription(prev => ({
-      ...prev,
+    updateSubscription({
       billingCycle: isAnnualBilling ? 'annual' : 'monthly',
       updatedAt: new Date(),
       nextBillingDate: prev.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
-    }));
+    });
   }, [isAnnualBilling]);
 
   // Handle plan selection (simplified without payment)
   const handlePlanActivation = (cardIndex: number, tierIndex: number) => {
     // Simulate plan activation
-    setMySubscription(prev => ({
-      ...prev,
+    updateSubscription({
       isActive: true,
       updatedAt: new Date(),
-    }));
+    });
     
     // Show success message
     const plans = getPricingPlans();
@@ -152,32 +152,75 @@ export const Subscription: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Logo size="md" />
-            <ThemeToggle />
+            <div className="flex items-center space-x-4">
+              {user ? (
+                <UserMenu />
+              ) : (
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="bg-[#2DD4BF] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#2DD4BF]/90 transition-colors duration-200"
+                >
+                  Sign In
+                </button>
+              )}
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            My Subscription
+            {user ? `Welcome back, ${user.email?.split('@')[0]}!` : 'My Subscription'}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Choose the perfect plan for your authentication needs. Scale seamlessly as your application grows.
+            {user 
+              ? 'Manage your subscription and choose the perfect plan for your authentication needs.'
+              : 'Choose the perfect plan for your authentication needs. Scale seamlessly as your application grows.'
+            }
           </p>
         </div>
 
+        {/* Authentication Required Message */}
+        {!user && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 mb-12">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Sign in to manage your subscription
+              </h3>
+              <p className="text-blue-700 dark:text-blue-300 mb-4">
+                Create an account or sign in to select and manage your subscription plans.
+              </p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="bg-[#2DD4BF] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2DD4BF]/90 transition-colors duration-200"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Token Counter and Billing Toggle */}
-        <div className="flex justify-between items-center mb-12 max-w-7xl mx-auto">
-          <TokenCounter remainingTokens={mySubscription.remainingTokens} className="shadow-lg" />
-          <BillingToggle 
-            isAnnual={isAnnualBilling}
-            onToggle={setIsAnnualBilling}
-            className="shadow-lg bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700"
-          />
-        </div>
+        {user && (
+          <div className="flex justify-between items-center mb-12 max-w-7xl mx-auto">
+            <TokenCounter remainingTokens={mySubscription.remainingTokens} className="shadow-lg" />
+            <BillingToggle 
+              isAnnual={isAnnualBilling}
+              onToggle={setIsAnnualBilling}
+              className="shadow-lg bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700"
+            />
+          </div>
+        )}
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -194,10 +237,10 @@ export const Subscription: React.FC = () => {
               monthlyPrice={plan.monthlyPrice}
               isPopular={plan.isPopular}
               isFree={plan.isFree}
-              buttonText={plan.buttonText}
+              buttonText={user ? plan.buttonText : 'Sign In Required'}
               selectedTier={selectedTier}
-              onTierSelect={setSelectedTier}
-              onPurchase={handlePlanActivation}
+              onTierSelect={user ? setSelectedTier : () => setShowAuthModal(true)}
+              onPurchase={user ? handlePlanActivation : () => setShowAuthModal(true)}
             />
           ))}
         </div>

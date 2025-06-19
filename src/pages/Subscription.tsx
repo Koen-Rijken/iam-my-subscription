@@ -10,6 +10,7 @@ import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
 import { useAuth } from '../context/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
+import { useStripe } from '../hooks/useStripe';
 
 export const Subscription: React.FC = () => {
   const { user, loading } = useAuth();
@@ -17,6 +18,7 @@ export const Subscription: React.FC = () => {
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
   const [showAuthModal, setShowAuthModal] = React.useState(false);
   const { subscription: mySubscription, updateSubscription } = useSubscription();
+  const { createCheckoutSession, loading: stripeLoading, error: stripeError } = useStripe();
 
   // Update subscription when tier is selected
   React.useEffect(() => {
@@ -73,16 +75,28 @@ export const Subscription: React.FC = () => {
 
   // Handle plan selection (simplified without payment)
   const handlePlanActivation = (cardIndex: number, tierIndex: number) => {
-    // Simulate plan activation
-    updateSubscription({
-      isActive: true,
-      updatedAt: new Date(),
-    });
-    
-    // Show success message
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    // Don't process free plan through Stripe
+    if (cardIndex === 0) {
+      updateSubscription({
+        isActive: true,
+        updatedAt: new Date(),
+      });
+      return;
+    }
+
+    // Process paid plans through Stripe
     const plans = getPricingPlans();
     const selectedPlan = plans[cardIndex];
-    alert(`Successfully activated ${selectedPlan.title}!`);
+    const tokenTier = selectedPlan.tokenTiers![tierIndex];
+    
+    const planType = cardIndex === 1 ? 'developer' : 'enterprise';
+    
+    createCheckoutSession(planType, tokenTier, isAnnualBilling ? 'annual' : 'monthly');
   };
 
   // Function to apply discount if annual billing is selected
@@ -223,6 +237,14 @@ export const Subscription: React.FC = () => {
         )}
 
         {/* Pricing Cards */}
+        {stripeError && (
+          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-700 dark:text-red-300 text-center">
+              Payment Error: {stripeError}
+            </p>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {pricingPlans.map((plan, index) => (
             <PricingCard
@@ -241,6 +263,7 @@ export const Subscription: React.FC = () => {
               selectedTier={selectedTier}
               onTierSelect={user ? setSelectedTier : () => setShowAuthModal(true)}
               onPurchase={user ? handlePlanActivation : () => setShowAuthModal(true)}
+              loading={stripeLoading}
             />
           ))}
         </div>

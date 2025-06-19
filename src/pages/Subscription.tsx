@@ -7,35 +7,11 @@ import { TokenCounter } from '../components/TokenCounter';
 import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
 import { MySubscription, createDefaultSubscription } from '../types/subscription';
-import { PaymentModal } from '../components/PaymentModal';
-import { SuccessModal } from '../components/SuccessModal';
 
 export const Subscription: React.FC = () => {
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
   const [mySubscription, setMySubscription] = React.useState<MySubscription>(createDefaultSubscription());
-  const [paymentModal, setPaymentModal] = React.useState<{
-    isOpen: boolean;
-    amount: number;
-    planName: string;
-    tokens: number;
-  }>({
-    isOpen: false,
-    amount: 0,
-    planName: '',
-    tokens: 0
-  });
-  const [successModal, setSuccessModal] = React.useState<{
-    isOpen: boolean;
-    planName: string;
-    tokens: number;
-    amount: number;
-  }>({
-    isOpen: false,
-    planName: '',
-    tokens: 0,
-    amount: 0
-  });
 
   // Update subscription when tier is selected
   React.useEffect(() => {
@@ -94,49 +70,19 @@ export const Subscription: React.FC = () => {
     }));
   }, [isAnnualBilling]);
 
-  // Handle purchase initiation
-  const handlePurchase = (cardIndex: number, tierIndex: number) => {
-    const plans = getPricingPlans();
-    const selectedPlan = plans[cardIndex];
-    
-    if (selectedPlan.tokenTiers) {
-      const selectedTokenTier = selectedPlan.tokenTiers[tierIndex];
-      setPaymentModal({
-        isOpen: true,
-        amount: selectedTokenTier.price,
-        planName: selectedPlan.title,
-        tokens: selectedTokenTier.tokens
-      });
-    }
-  };
-
-  // Handle successful payment
-  const handlePaymentSuccess = (paymentIntent: any) => {
-    console.log('Payment successful:', paymentIntent);
-    
-    // Update subscription with successful payment
+  // Handle plan selection (simplified without payment)
+  const handlePlanActivation = (cardIndex: number, tierIndex: number) => {
+    // Simulate plan activation
     setMySubscription(prev => ({
       ...prev,
       isActive: true,
       updatedAt: new Date(),
     }));
     
-    // Close modal
-    setPaymentModal(prev => ({ ...prev, isOpen: false }));
-    
-    // Show success modal
-    setSuccessModal({
-      isOpen: true,
-      planName: paymentModal.planName,
-      tokens: paymentModal.tokens,
-      amount: paymentModal.amount
-    });
-  };
-
-  // Handle payment error
-  const handlePaymentError = (error: string) => {
-    console.error('Payment error:', error);
-    alert(`Payment failed: ${error}`);
+    // Show success message
+    const plans = getPricingPlans();
+    const selectedPlan = plans[cardIndex];
+    alert(`Successfully activated ${selectedPlan.title}!`);
   };
 
   // Function to apply discount if annual billing is selected
@@ -251,7 +197,7 @@ export const Subscription: React.FC = () => {
               buttonText={plan.buttonText}
               selectedTier={selectedTier}
               onTierSelect={setSelectedTier}
-              onPurchase={handlePurchase}
+              onPurchase={handlePlanActivation}
             />
           ))}
         </div>
@@ -313,27 +259,6 @@ export const Subscription: React.FC = () => {
       
       {/* Debug Window */}
       <DebugWindow subscription={mySubscription} />
-      
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={paymentModal.isOpen}
-        onClose={() => setPaymentModal(prev => ({ ...prev, isOpen: false }))}
-        amount={paymentModal.amount}
-        currency="eur"
-        planName={paymentModal.planName}
-        tokens={paymentModal.tokens}
-        onSuccess={handlePaymentSuccess}
-        onError={handlePaymentError}
-      />
-      
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={successModal.isOpen}
-        onClose={() => setSuccessModal(prev => ({ ...prev, isOpen: false }))}
-        planName={successModal.planName}
-        tokens={successModal.tokens}
-        amount={successModal.amount}
-      />
     </div>
   );
 };

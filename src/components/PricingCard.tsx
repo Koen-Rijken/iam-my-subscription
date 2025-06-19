@@ -62,7 +62,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
       return;
     }
     
-    // Handle purchase for paid plans
+    // Handle plan activation for paid plans
     if (hasSelectedTier && selectedTier && onPurchase && !isFree) {
       onPurchase(selectedTier.cardIndex, selectedTier.tierIndex);
     }

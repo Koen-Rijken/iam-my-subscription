@@ -1,55 +1,50 @@
 # My Subscription App
 
-A modern subscription management application built with React, TypeScript, and Stripe integration.
+A modern subscription management application built with React, TypeScript, and Tailwind CSS.
 
 ## Features
 
 - 🎨 Beautiful, responsive design with dark/light theme support
-- 💳 Stripe payment integration
 - 📊 Real-time subscription management
 - 🔧 Debug window for development
 - 📱 Mobile-friendly interface
+- 🌙 Dark mode by default
 
 ## Setup
 
 1. Clone the repository
 2. Install dependencies: `npm install`
-3. Set up your Stripe keys in `.env`:
-   ```
-   VITE_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
-   STRIPE_SECRET_KEY=sk_test_your_secret_key_here
-   ```
-4. Start the development server: `npm run dev`
-
-## Stripe Integration
-
-This app includes a complete Stripe integration with:
-- Secure payment processing
-- Multiple subscription tiers
-- Annual/monthly billing options
-- Real-time payment status updates
-
-### Setting up Stripe
-
-1. Create a Stripe account at https://dashboard.stripe.com/register
-2. Get your API keys from the Developers section
-3. Replace the placeholder keys in `.env` with your actual keys
-4. For production, make sure to use live keys and implement proper backend security
+3. Start the development server: `npm run dev`
 
 ## Development
 
 The app uses:
 - **React 18** with TypeScript
 - **Tailwind CSS** for styling
-- **Stripe Elements** for secure payment forms
 - **Lucide React** for icons
 - **Vite** for fast development
+
+## Features
+
+### Subscription Plans
+- **Freemium SaaS**: Forever free plan with 500 tokens
+- **Developer SaaS**: Paid plans with multiple token tiers
+- **Enterprise SaaS**: Advanced plans with enterprise features
+
+### Token System
+- Tokens never expire and roll over month to month
+- Each token covers unlimited authentication requests for 1 monthly active user
+- Global infrastructure with 99.9% uptime
+
+### Theme Support
+- Dark mode by default
+- Light/dark theme toggle
+- Respects system preferences
 
 ## Production Notes
 
 For production deployment:
-1. Implement proper backend API endpoints for Stripe operations
-2. Use environment variables for all sensitive keys
+1. Implement proper backend API endpoints
+2. Add user authentication and session management
 3. Implement proper error handling and logging
-4. Add user authentication and session management
-5. Set up webhooks for subscription status updates
+4. Set up database for subscription management

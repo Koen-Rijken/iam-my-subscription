@@ -154,9 +154,7 @@ export const Subscription: React.FC = () => {
       features: [
         'Basic authentication flows',
         'Basic user management',
-        'Standard API & SDK access',
-        'Community support',
-        'Basic documentation'
+        'Standard API & SDK access'
       ],
       monthlyTokens: 500,
       monthlyPrice: 0, // Free plan is always free
@@ -168,11 +166,7 @@ export const Subscription: React.FC = () => {
       buttonText: 'Select Plan',
       icon: <TrendingUp className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
-        'Everything in Freemium',
-        'Priority email support',
-        'Advanced API features',
-        'Custom integrations',
-        'Analytics dashboard'
+        'Same as Freemium SaaS'
       ],
       tokenTiers: [
         { tokens: 1000, price: applyDiscount(1) },
@@ -187,13 +181,12 @@ export const Subscription: React.FC = () => {
       buttonText: 'Select Plan',
       icon: <Building2 className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
-        'Everything in Developer',
+        'Same as Developer SaaS',
         'SAML and OIDC integration',
         'Hierarchical organization',
         'Active Directory integration',
         'User synchronization & provisioning',
-        'Enterprise SLA',
-        'Dedicated account manager'
+        'Enterprise SLA'
       ],
       tokenTiers: [
         { tokens: 1000, price: applyDiscount(5) },

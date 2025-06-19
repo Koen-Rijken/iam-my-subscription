@@ -22,7 +22,7 @@ export const useSubscription = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('Error loading subscription:', error);
@@ -80,9 +80,7 @@ export const useSubscription = () => {
 
       const { error } = await supabase
         .from('user_subscriptions')
-        .upsert(subscriptionData, {
-          onConflict: 'user_id'
-        });
+        .upsert(subscriptionData);
 
       if (error) {
         console.error('Error saving subscription:', error);

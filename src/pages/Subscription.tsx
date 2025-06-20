@@ -90,7 +90,7 @@ export const Subscription: React.FC = () => {
     {
       title: 'Freemium SaaS',
       description: 'Forever free for small projects and testing. Never Billed!',
-      buttonText: 'Activate Free Plan',
+      buttonText: 'Current Plan',
       icon: <Gift className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
         'Basic authentication flows',

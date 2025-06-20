@@ -187,20 +187,6 @@ export const Subscription: React.FC = () => {
           />
         </div>
 
-        {/* Current Plan Status */}
-        <div className="bg-gradient-to-r from-[#2DD4BF]/10 to-blue-500/10 rounded-2xl p-6 mb-12 border border-[#2DD4BF]/20">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Current Plan: {subscription.planName}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              {subscription.isActive ? 'Active' : 'Inactive'} • 
-              {subscription.remainingTokens.toLocaleString()} tokens remaining • 
-              {subscription.billingCycle === 'annual' ? 'Annual' : 'Monthly'} billing
-            </p>
-          </div>
-        </div>
-
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {pricingPlans.map((plan, index) => (

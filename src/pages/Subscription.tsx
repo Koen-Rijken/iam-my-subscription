@@ -260,56 +260,6 @@ export const Subscription: React.FC = () => {
           </div>
         </div>
 
-        {/* Features Comparison */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 mb-16">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-            Plan Comparison
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Feature</th>
-                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Freemium</th>
-                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Developer</th>
-                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Enterprise</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                <tr>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Monthly Tokens</td>
-                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">500</td>
-                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">1K - 10K</td>
-                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">1K - 10K</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Basic Authentication</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Priority Support</td>
-                  <td className="py-4 px-4 text-center">❌</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">SAML/OIDC Integration</td>
-                  <td className="py-4 px-4 text-center">❌</td>
-                  <td className="py-4 px-4 text-center">❌</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Enterprise SLA</td>
-                  <td className="py-4 px-4 text-center">❌</td>
-                  <td className="py-4 px-4 text-center">❌</td>
-                  <td className="py-4 px-4 text-center">✅</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         {/* FAQ or Contact Section */}
         <div className="text-center mt-16">

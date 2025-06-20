@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { stripePromise } from '../lib/stripe';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 
 export const useStripe = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
 
   const createCheckoutSession = async (
     planType: string,
@@ -16,39 +13,16 @@ export const useStripe = () => {
     setLoading(true);
     setError(null);
 
-    if (!user) {
-      setError('User not authenticated');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: {
-          planType,
-          tokenTier,
-          billingCycle,
-        },
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message);
-      }
-
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe failed to load');
-      }
-
-      if (!data?.url) {
-        throw new Error('No checkout URL received from server');
-      }
-
-      console.log('Redirecting to Stripe checkout:', data.url);
+      // For demo purposes, simulate a successful checkout
+      // In a real app, you would call your backend API here
+      console.log('Creating checkout session for:', { planType, tokenTier, billingCycle });
       
-      // Redirect to Stripe Checkout
-      window.location.href = data.url;
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // For demo, redirect to success page
+      window.location.href = '/success';
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

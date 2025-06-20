@@ -2,22 +2,17 @@ import React from 'react';
 import { Gift, TrendingUp, Building2 } from 'lucide-react';
 import { Logo } from '../components/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { UserMenu } from '../components/UserMenu';
-import { AuthModal } from '../components/AuthModal';
 import { PricingCard } from '../components/PricingCard';
 import { TokenCounter } from '../components/TokenCounter';
 import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
-import { useAuth } from '../context/AuthContext';
-import { useSubscription } from '../hooks/useSubscription';
 import { useStripe } from '../hooks/useStripe';
+import { MySubscription, createDefaultSubscription } from '../types/subscription';
 
 export const Subscription: React.FC = () => {
-  const { user, loading } = useAuth();
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
-  const [showAuthModal, setShowAuthModal] = React.useState(false);
-  const { subscription: mySubscription, updateSubscription } = useSubscription();
+  const [subscription, setSubscription] = React.useState<MySubscription>(createDefaultSubscription());
   const { createCheckoutSession, loading: stripeLoading, error: stripeError } = useStripe();
 
   // Update subscription when tier is selected
@@ -26,7 +21,7 @@ export const Subscription: React.FC = () => {
       const plans = getPricingPlans();
       const selectedPlan = plans[selectedTier.cardIndex];
       
-      const updates: any = {
+      const updates: Partial<MySubscription> = {
         updatedAt: new Date(),
       };
 
@@ -60,32 +55,29 @@ export const Subscription: React.FC = () => {
         updates.remainingTokens = updates.tokenTier.tokens;
       }
 
-      updateSubscription(updates);
+      setSubscription(prev => ({ ...prev, ...updates }));
     }
   }, [selectedTier, isAnnualBilling]);
 
   // Update subscription when billing cycle changes
   React.useEffect(() => {
-    updateSubscription({
+    setSubscription(prev => ({
+      ...prev,
       billingCycle: isAnnualBilling ? 'annual' : 'monthly',
       updatedAt: new Date(),
-      nextBillingDate: mySubscription.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
-    });
+      nextBillingDate: prev.nextBillingDate ? new Date(Date.now() + (isAnnualBilling ? 365 : 30) * 24 * 60 * 60 * 1000) : null
+    }));
   }, [isAnnualBilling]);
 
-  // Handle plan selection (simplified without payment)
+  // Handle plan selection
   const handlePlanActivation = (cardIndex: number, tierIndex: number) => {
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-
     // Don't process free plan through Stripe
     if (cardIndex === 0) {
-      updateSubscription({
+      setSubscription(prev => ({
+        ...prev,
         isActive: true,
         updatedAt: new Date(),
-      });
+      }));
       alert('Free plan activated successfully!');
       return;
     }
@@ -169,74 +161,33 @@ export const Subscription: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <Logo size="md" />
             <div className="flex items-center space-x-4">
-              {user ? (
-                <UserMenu />
-              ) : (
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="bg-[#2DD4BF] text-white px-4 py-2 rounded-lg font-semibold hover:bg-[#2DD4BF]/90 transition-colors duration-200"
-                >
-                  Sign In
-                </button>
-              )}
               <ThemeToggle />
             </div>
           </div>
         </div>
       </header>
 
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-      />
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            {user ? `Welcome back, ${user.email?.split('@')[0]}!` : 'My Subscription'}
+            My Subscription
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            {user 
-              ? 'Manage your subscription and choose the perfect plan for your authentication needs.'
-              : 'Choose the perfect plan for your authentication needs. Scale seamlessly as your application grows.'
-            }
+            Choose the perfect plan for your authentication needs. Scale seamlessly as your application grows.
           </p>
         </div>
 
-        {/* Authentication Required Message */}
-        {!user && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-6 mb-12">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                Sign in to manage your subscription
-              </h3>
-              <p className="text-blue-700 dark:text-blue-300 mb-4">
-                Create an account or sign in to select and manage your subscription plans.
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="bg-[#2DD4BF] text-white px-6 py-2 rounded-lg font-semibold hover:bg-[#2DD4BF]/90 transition-colors duration-200"
-              >
-                Get Started
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Token Counter and Billing Toggle */}
-        {user && (
-          <div className="flex justify-between items-center mb-12 max-w-7xl mx-auto">
-            <TokenCounter remainingTokens={mySubscription.remainingTokens} className="shadow-lg" />
-            <BillingToggle 
-              isAnnual={isAnnualBilling}
-              onToggle={setIsAnnualBilling}
-              className="shadow-lg bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700"
-            />
-          </div>
-        )}
+        <div className="flex justify-between items-center mb-12 max-w-7xl mx-auto">
+          <TokenCounter remainingTokens={subscription.remainingTokens} className="shadow-lg" />
+          <BillingToggle 
+            isAnnual={isAnnualBilling}
+            onToggle={setIsAnnualBilling}
+            className="shadow-lg bg-white dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700"
+          />
+        </div>
 
         {/* Pricing Cards */}
         {stripeError && (
@@ -261,10 +212,10 @@ export const Subscription: React.FC = () => {
               monthlyPrice={plan.monthlyPrice}
               isPopular={plan.isPopular}
               isFree={plan.isFree}
-              buttonText={user ? plan.buttonText : 'Sign In Required'}
+              buttonText={plan.buttonText}
               selectedTier={selectedTier}
-              onTierSelect={user ? setSelectedTier : () => setShowAuthModal(true)}
-              onPurchase={user ? handlePlanActivation : () => setShowAuthModal(true)}
+              onTierSelect={setSelectedTier}
+              onPurchase={handlePlanActivation}
               loading={stripeLoading}
             />
           ))}
@@ -326,7 +277,7 @@ export const Subscription: React.FC = () => {
       </main>
       
       {/* Debug Window */}
-      <DebugWindow subscription={mySubscription} />
+      <DebugWindow subscription={subscription} />
     </div>
   );
 };

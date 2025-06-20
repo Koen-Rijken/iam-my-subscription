@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, ArrowLeft, Loader } from 'lucide-react';
 import { Logo } from '../components/Logo';
-import { useAuth } from '../context/AuthContext';
-import { useSubscription } from '../hooks/useSubscription';
 
 export const Success: React.FC = () => {
-  const { user } = useAuth();
-  const { refreshSubscription } = useSubscription();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Refresh subscription data after successful payment
-    const refreshData = async () => {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for webhook processing
-      await refreshSubscription();
+    // Simulate processing time
+    const timer = setTimeout(() => {
       setLoading(false);
-    };
+    }, 2000);
 
-    refreshData();
-  }, [refreshSubscription]);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleReturnHome = () => {
     window.location.href = '/';
@@ -60,14 +54,6 @@ export const Success: React.FC = () => {
               <span>Return to Dashboard</span>
             </button>
           </>
-        )}
-        
-        {user && (
-          <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Signed in as: <span className="font-medium">{user.email}</span>
-            </p>
-          </div>
         )}
       </div>
     </div>

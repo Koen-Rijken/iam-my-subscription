@@ -78,14 +78,6 @@ export const Subscription: React.FC = () => {
       isActive: true,
       updatedAt: new Date(),
     }));
-    
-    // Show success message
-    if (cardIndex === 0) {
-      alert('Free plan activated successfully!');
-    } else {
-      const tokenTier = selectedPlan.tokenTiers![tierIndex];
-      alert(`Successfully activated ${selectedPlan.title} with ${tokenTier.tokens.toLocaleString()} tokens for €${tokenTier.price}/month!`);
-    }
   };
 
   // Function to apply discount if annual billing is selected

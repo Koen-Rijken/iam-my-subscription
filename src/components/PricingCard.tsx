@@ -21,7 +21,6 @@ interface PricingCardProps {
   selectedTier: {cardIndex: number, tierIndex: number} | null;
   onTierSelect: (selection: {cardIndex: number, tierIndex: number} | null) => void;
   onPurchase?: (cardIndex: number, tierIndex: number) => void;
-  loading?: boolean;
 }
 
 export const PricingCard: React.FC<PricingCardProps> = ({
@@ -38,8 +37,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   buttonText = 'Get Started',
   selectedTier,
   onTierSelect,
-  onPurchase,
-  loading = false
+  onPurchase
 }) => {
   const [showWarning, setShowWarning] = useState(false);
 
@@ -157,11 +155,8 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         {/* CTA Button */}
         <button 
           onClick={handleButtonClick}
-          disabled={loading}
           className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mt-auto ${
-            loading
-              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              : !hasSelectedTier && !isFree
+            !hasSelectedTier && !isFree
               ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-pointer'
               : 
           buttonText === 'Select Plan'
@@ -170,14 +165,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
             ? 'bg-[#2DD4BF] text-white hover:bg-[#2DD4BF]/90 shadow-lg hover:shadow-xl'
             : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700'
         }`}>
-          {loading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Processing...</span>
-            </div>
-          ) : (
-            buttonText
-          )}
+          {buttonText}
         </button>
 
         {/* Warning Message */}

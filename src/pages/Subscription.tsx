@@ -6,14 +6,12 @@ import { PricingCard } from '../components/PricingCard';
 import { TokenCounter } from '../components/TokenCounter';
 import { BillingToggle } from '../components/BillingToggle';
 import { DebugWindow } from '../components/DebugWindow';
-import { useStripe } from '../hooks/useStripe';
 import { MySubscription, createDefaultSubscription } from '../types/subscription';
 
 export const Subscription: React.FC = () => {
   const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
   const [selectedTier, setSelectedTier] = React.useState<{cardIndex: number, tierIndex: number} | null>(null);
   const [subscription, setSubscription] = React.useState<MySubscription>(createDefaultSubscription());
-  const { createCheckoutSession, loading: stripeLoading, error: stripeError } = useStripe();
 
   // Update subscription when tier is selected
   React.useEffect(() => {
@@ -69,28 +67,25 @@ export const Subscription: React.FC = () => {
     }));
   }, [isAnnualBilling]);
 
-  // Handle plan selection
+  // Handle plan selection (demo mode - no actual payment processing)
   const handlePlanActivation = (cardIndex: number, tierIndex: number) => {
-    // Don't process free plan through Stripe
-    if (cardIndex === 0) {
-      setSubscription(prev => ({
-        ...prev,
-        isActive: true,
-        updatedAt: new Date(),
-      }));
-      alert('Free plan activated successfully!');
-      return;
-    }
-
-    // Process paid plans through Stripe
     const plans = getPricingPlans();
     const selectedPlan = plans[cardIndex];
-    const tokenTier = selectedPlan.tokenTiers![tierIndex];
     
-    const planType = cardIndex === 1 ? 'developer' : 'enterprise';
+    // Update subscription state to reflect the selected plan
+    setSubscription(prev => ({
+      ...prev,
+      isActive: true,
+      updatedAt: new Date(),
+    }));
     
-    console.log('Initiating checkout for:', { planType, tokenTier, billingCycle: isAnnualBilling ? 'annual' : 'monthly' });
-    createCheckoutSession(planType, tokenTier, isAnnualBilling ? 'annual' : 'monthly');
+    // Show success message
+    if (cardIndex === 0) {
+      alert('Free plan activated successfully!');
+    } else {
+      const tokenTier = selectedPlan.tokenTiers![tierIndex];
+      alert(`Successfully activated ${selectedPlan.title} with ${tokenTier.tokens.toLocaleString()} tokens for €${tokenTier.price}/month!`);
+    }
   };
 
   // Function to apply discount if annual billing is selected
@@ -103,7 +98,7 @@ export const Subscription: React.FC = () => {
     {
       title: 'Freemium SaaS',
       description: 'Forever free for small projects and testing. Never Billed!',
-      buttonText: 'Current Plan',
+      buttonText: 'Activate Free Plan',
       icon: <Gift className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
         'Basic authentication flows',
@@ -117,10 +112,12 @@ export const Subscription: React.FC = () => {
     {
       title: 'Developer SaaS',
       description: 'Supporting more applications and higher authentication needs.',
-      buttonText: 'Select Plan',
+      buttonText: 'Activate Plan',
       icon: <TrendingUp className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
-        'Same as Freemium SaaS'
+        'Same as Freemium SaaS',
+        'Priority support',
+        'Advanced analytics'
       ],
       tokenTiers: [
         { tokens: 1000, price: applyDiscount(1) },
@@ -132,7 +129,7 @@ export const Subscription: React.FC = () => {
     {
       title: 'Enterprise SaaS',
       description: 'Solution for organizations with complex requirements.',
-      buttonText: 'Select Plan',
+      buttonText: 'Activate Plan',
       icon: <Building2 className="w-8 h-8 text-[#2DD4BF]" />,
       features: [
         'Same as Developer SaaS',
@@ -172,15 +169,16 @@ export const Subscription: React.FC = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            My Subscription
+            Choose Your Perfect Plan
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Choose the perfect plan for your authentication needs. Scale seamlessly as your application grows.
+            Scale seamlessly with our flexible subscription plans. From free tier to enterprise solutions, 
+            we have the perfect fit for your authentication needs.
           </p>
         </div>
 
         {/* Token Counter and Billing Toggle */}
-        <div className="flex justify-between items-center mb-12 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-12 max-w-7xl mx-auto">
           <TokenCounter remainingTokens={subscription.remainingTokens} className="shadow-lg" />
           <BillingToggle 
             isAnnual={isAnnualBilling}
@@ -189,15 +187,21 @@ export const Subscription: React.FC = () => {
           />
         </div>
 
-        {/* Pricing Cards */}
-        {stripeError && (
-          <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-700 dark:text-red-300 text-center">
-              Payment Error: {stripeError}
+        {/* Current Plan Status */}
+        <div className="bg-gradient-to-r from-[#2DD4BF]/10 to-blue-500/10 rounded-2xl p-6 mb-12 border border-[#2DD4BF]/20">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Current Plan: {subscription.planName}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {subscription.isActive ? 'Active' : 'Inactive'} • 
+              {subscription.remainingTokens.toLocaleString()} tokens remaining • 
+              {subscription.billingCycle === 'annual' ? 'Annual' : 'Monthly'} billing
             </p>
           </div>
-        )}
-        
+        </div>
+
+        {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {pricingPlans.map((plan, index) => (
             <PricingCard
@@ -216,7 +220,6 @@ export const Subscription: React.FC = () => {
               selectedTier={selectedTier}
               onTierSelect={setSelectedTier}
               onPurchase={handlePlanActivation}
-              loading={stripeLoading}
             />
           ))}
         </div>
@@ -254,6 +257,57 @@ export const Subscription: React.FC = () => {
                 99.9% uptime with global CDN and redundant systems
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Features Comparison */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border border-gray-200 dark:border-gray-700 mb-16">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
+            Plan Comparison
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-4 px-4 font-semibold text-gray-900 dark:text-white">Feature</th>
+                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Freemium</th>
+                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Developer</th>
+                  <th className="text-center py-4 px-4 font-semibold text-gray-900 dark:text-white">Enterprise</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                <tr>
+                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Monthly Tokens</td>
+                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">500</td>
+                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">1K - 10K</td>
+                  <td className="py-4 px-4 text-center text-gray-900 dark:text-white">1K - 10K</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Basic Authentication</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Priority Support</td>
+                  <td className="py-4 px-4 text-center">❌</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">SAML/OIDC Integration</td>
+                  <td className="py-4 px-4 text-center">❌</td>
+                  <td className="py-4 px-4 text-center">❌</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-4 text-gray-700 dark:text-gray-300">Enterprise SLA</td>
+                  <td className="py-4 px-4 text-center">❌</td>
+                  <td className="py-4 px-4 text-center">❌</td>
+                  <td className="py-4 px-4 text-center">✅</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 

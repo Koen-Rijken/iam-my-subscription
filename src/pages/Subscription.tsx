@@ -86,6 +86,7 @@ export const Subscription: React.FC = () => {
         isActive: true,
         updatedAt: new Date(),
       });
+      alert('Free plan activated successfully!');
       return;
     }
 
@@ -96,6 +97,7 @@ export const Subscription: React.FC = () => {
     
     const planType = cardIndex === 1 ? 'developer' : 'enterprise';
     
+    console.log('Initiating checkout for:', { planType, tokenTier, billingCycle: isAnnualBilling ? 'annual' : 'monthly' });
     createCheckoutSession(planType, tokenTier, isAnnualBilling ? 'annual' : 'monthly');
   };
 

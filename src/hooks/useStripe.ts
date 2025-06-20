@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { stripePromise } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 export const useStripe = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const createCheckoutSession = async (
     planType: string,
@@ -13,6 +15,12 @@ export const useStripe = () => {
   ) => {
     setLoading(true);
     setError(null);
+
+    if (!user) {
+      setError('User not authenticated');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
@@ -24,6 +32,7 @@ export const useStripe = () => {
       });
 
       if (error) {
+        console.error('Supabase function error:', error);
         throw new Error(error.message);
       }
 
@@ -32,8 +41,15 @@ export const useStripe = () => {
         throw new Error('Stripe failed to load');
       }
 
+      if (!data?.url) {
+        throw new Error('No checkout URL received from server');
+      }
+
+      console.log('Redirecting to Stripe checkout:', data.url);
+      
       // Redirect to Stripe Checkout
       window.location.href = data.url;
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
